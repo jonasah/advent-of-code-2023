@@ -72,9 +72,8 @@ func getTestContent(day string) string {
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/jonasah/advent-of-code-2023/lib/common"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPart1(t *testing.T) {
