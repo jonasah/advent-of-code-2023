@@ -2,7 +2,6 @@ package day1
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -15,11 +14,7 @@ func Part1(input string) int {
 	codes := make([]int, 0, len(lines))
 
 	for _, line := range lines {
-		first := strings.IndexFunc(line, unicode.IsDigit)
-		last := strings.LastIndexFunc(line, unicode.IsDigit)
-
-		code, _ := strconv.Atoi(fmt.Sprintf("%v%v", line[first]-'0', line[last]-'0'))
-		codes = append(codes, code)
+		codes = append(codes, getCode(line))
 	}
 
 	return sum(codes)
@@ -35,46 +30,21 @@ func Part2(input string) int {
 	}
 
 	for _, line := range lines {
-		fwd := line
-		i := 0
-
-	loop:
-		for i < len(fwd) {
-			for a, n := range numbers {
-				if strings.HasPrefix(fwd[i:], n) {
-					fwd = fwd[:i] + strings.Replace(fwd[i:], n, fmt.Sprintf("%d", a+1), 1)
-					break loop
-				}
-			}
-
-			i++
+		for i, n := range numbers {
+			line = strings.ReplaceAll(line, n, fmt.Sprintf("%s%d%s", n, i+1, n[len(n)-1:]))
 		}
 
-		back := line
-		i = len(back) - 1
-
-	loop2:
-		for i >= 0 {
-			for a, n := range numbers {
-				if strings.HasPrefix(back[i:], n) {
-					back = back[:i] + strings.Replace(back[i:], n, fmt.Sprintf("%d", a+1), 1)
-					break loop2
-				}
-			}
-
-			i--
-		}
-
-		first := strings.IndexFunc(fwd, unicode.IsDigit)
-		last := strings.LastIndexFunc(back, unicode.IsDigit)
-
-		code, _ := strconv.Atoi(fmt.Sprintf("%v%v", fwd[first]-'0', back[last]-'0'))
-		codes = append(codes, code)
-
-		fmt.Println(line, fwd, back, code)
+		codes = append(codes, getCode(line))
 	}
 
 	return sum(codes)
+}
+
+func getCode(line string) int {
+	first := strings.IndexFunc(line, unicode.IsDigit)
+	last := strings.LastIndexFunc(line, unicode.IsDigit)
+
+	return int((line[first]-'0')*10 + line[last] - '0')
 }
 
 func sum(a []int) int {
