@@ -1,5 +1,9 @@
 package math
 
+import (
+	m "math"
+)
+
 func Max(x, y int) int {
 	if x < y {
 		return y
@@ -14,4 +18,8 @@ func Abs(x int) int {
 	}
 
 	return x
+}
+
+func Pow(x, y int) int {
+	return int(m.Pow(float64(x), float64(y)))
 }
