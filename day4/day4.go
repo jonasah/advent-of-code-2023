@@ -2,11 +2,11 @@ package day4
 
 import (
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/jonasah/advent-of-code-2023/lib/common"
 	"github.com/jonasah/advent-of-code-2023/lib/math"
+	"github.com/jonasah/advent-of-code-2023/lib/sliceconv"
 )
 
 type Card struct {
@@ -64,22 +64,13 @@ func parseInput(input string) []Card {
 
 	cards := make([]Card, 0, len(lines))
 	for n, line := range lines {
-		card := Card{idx: n, winningNumbers: make([]int, 0), myNumbers: make([]int, 0)}
 		x := strings.Split(strings.Split(line, ": ")[1], " | ")
 
-		w := strings.Fields(x[0])
-		for _, v := range w {
-			n, _ := strconv.Atoi(v)
-			card.winningNumbers = append(card.winningNumbers, n)
-		}
-
-		m := strings.Fields(x[1])
-		for _, v := range m {
-			n, _ := strconv.Atoi(v)
-			card.myNumbers = append(card.myNumbers, n)
-		}
-
-		cards = append(cards, card)
+		cards = append(cards, Card{
+			idx:            n,
+			winningNumbers: sliceconv.Atoi(strings.Fields(x[0])),
+			myNumbers:      sliceconv.Atoi(strings.Fields(x[1])),
+		})
 	}
 
 	return cards
