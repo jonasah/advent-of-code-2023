@@ -2,7 +2,6 @@ package math
 
 import (
 	"math"
-	m "math"
 )
 
 func Max(x, y int) int {
@@ -39,5 +38,5 @@ func Abs(x int) int {
 }
 
 func Pow(x, y int) int {
-	return int(m.Pow(float64(x), float64(y)))
+	return int(math.Pow(float64(x), float64(y)))
 }

@@ -5,59 +5,67 @@ import (
 
 	"github.com/jonasah/advent-of-code-2023/lib/common"
 	"github.com/jonasah/advent-of-code-2023/lib/math"
+	"github.com/jonasah/advent-of-code-2023/lib/sliceconv"
 )
 
-type Entry struct {
-	dst int
-	src int
-	len int
+type MapEntry struct {
+	dst, src, len int
 }
 
-func (e Entry) isInSrcRange(v int) bool {
+func (e MapEntry) containsSource(v int) bool {
 	return e.src <= v && v <= e.src+e.len-1
 }
 
-func (e Entry) mapToDst(v int) int {
+func (e MapEntry) mapToDestination(v int) int {
+	// assumes that v is in source range
 	return e.dst + v - e.src
 }
 
 type Map struct {
-	from    string
 	to      string
-	entries []Entry
+	entries []MapEntry
+}
+
+type Range struct {
+	start, len int
+}
+
+func (r Range) contains(v int) bool {
+	return r.start <= v && v <= r.end()
+}
+
+func (r Range) end() int {
+	return r.start + r.len - 1
 }
 
 type Almanac struct {
-	// part 1
-	seeds []int
-	maps  map[string]Map
-
-	// part 2
-	seedsRanges []Entry
-	reverseMaps map[string]Map
+	seeds      []int          // part 1 only
+	seedRanges []Range        // part 2 only
+	maps       map[string]Map // part 1: top to bottom, part 2: bottom to top
 }
 
+const (
+	startCategory = "seed"
+	endCategory   = "location"
+)
+
 func Part1(input string) int {
-	almanac := parseInput(input, true)
+	almanac := parseInput(input, 1)
 
 	var numbers []int
 	numbers = append(numbers, almanac.seeds...)
 
-	category := "seed"
+	category := startCategory
 
-	for {
-		if category == "location" {
-			break
-		}
-
+	for category != endCategory {
 		m := almanac.maps[category]
 		mapped := make([]int, 0, len(numbers))
 
 	outer:
 		for _, n := range numbers {
 			for _, e := range m.entries {
-				if e.isInSrcRange(n) {
-					mapped = append(mapped, e.mapToDst(n))
+				if e.containsSource(n) {
+					mapped = append(mapped, e.mapToDestination(n))
 					continue outer
 				}
 			}
@@ -73,56 +81,51 @@ func Part1(input string) int {
 }
 
 func Part2(input string) int {
-	almanac := parseInput(input, false)
+	almanac := parseInput(input, 2)
 
-	category := "location"
 	location := 0
-	number := location
 
 	for {
-		if category == "seed" {
-			for _, r := range almanac.seedsRanges {
-				if r.isInSrcRange(number) {
-					return location
+		category := endCategory
+		number := location
+
+		for category != startCategory {
+			m := almanac.maps[category]
+
+			for _, e := range m.entries {
+				if e.containsSource(number) {
+					number = e.mapToDestination(number)
+					break
 				}
 			}
 
-			category = "location"
-			location++
-			number = location
+			category = m.to
 		}
 
-		m := almanac.reverseMaps[category]
-		mapped := 0
-
-		for _, e := range m.entries {
-			if e.isInSrcRange(number) {
-				mapped = e.mapToDst(number)
-				break
+		for _, r := range almanac.seedRanges {
+			if r.contains(number) {
+				return location
 			}
-
-			mapped = number
 		}
 
-		category = m.to
-		number = mapped
+		location++
 	}
 }
 
-func parseInput(input string, part1 bool) Almanac {
+func parseInput(input string, part int) Almanac {
 	groups := strings.Split(input, "\n\n")
 
-	almanac := Almanac{seeds: make([]int, 0), maps: make(map[string]Map), reverseMaps: make(map[string]Map)}
+	almanac := Almanac{maps: make(map[string]Map)}
 
-	if part1 {
-		almanac.seeds = append(almanac.seeds, common.ToInts(strings.Fields(groups[0])[1:])...)
+	if part == 1 {
+		almanac.seeds = append(almanac.seeds, sliceconv.Atoi(strings.Fields(groups[0])[1:])...)
 	} else {
-		ranges := common.ToInts(strings.Fields(groups[0])[1:])
+		ranges := sliceconv.Atoi(strings.Fields(groups[0])[1:])
 		for i := 0; i < len(ranges); i += 2 {
 			start := ranges[i]
 			l := ranges[i+1]
 
-			almanac.seedsRanges = append(almanac.seedsRanges, Entry{src: start, dst: start, len: l})
+			almanac.seedRanges = append(almanac.seedRanges, Range{start: start, len: l})
 		}
 	}
 
@@ -130,17 +133,26 @@ func parseInput(input string, part1 bool) Almanac {
 		lines := common.GetLines(g)
 		c := strings.Split(lines[0][:len(lines[0])-5], "-")
 
-		m := Map{from: c[0], to: c[2], entries: make([]Entry, 0)}
-		r := Map{from: m.to, to: m.from, entries: make([]Entry, 0)}
-
-		for _, line := range lines[1:] {
-			values := common.ToInts(strings.Fields(line))
-			m.entries = append(m.entries, Entry{src: values[1], dst: values[0], len: values[2]})
-			r.entries = append(r.entries, Entry{src: values[0], dst: values[1], len: values[2]})
+		from := c[0]
+		to := c[2]
+		if part == 2 {
+			from, to = to, from
 		}
 
-		almanac.maps[m.from] = m
-		almanac.reverseMaps[r.from] = r
+		m := Map{to: to}
+
+		for _, line := range lines[1:] {
+			values := sliceconv.Atoi(strings.Fields(line))
+
+			e := MapEntry{src: values[1], dst: values[0], len: values[2]}
+			if part == 2 {
+				e.src, e.dst = e.dst, e.src
+			}
+
+			m.entries = append(m.entries, e)
+		}
+
+		almanac.maps[from] = m
 	}
 
 	return almanac
