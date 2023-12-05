@@ -1,6 +1,7 @@
 package math
 
 import (
+	"math"
 	m "math"
 )
 
@@ -10,6 +11,23 @@ func Max(x, y int) int {
 	}
 
 	return x
+}
+
+func Min(x, y int) int {
+	if x < y {
+		return x
+	}
+
+	return y
+}
+
+func MinElement(array []int) int {
+	minVal := math.MaxInt
+	for _, v := range array {
+		minVal = Min(minVal, v)
+	}
+
+	return minVal
 }
 
 func Abs(x int) int {
