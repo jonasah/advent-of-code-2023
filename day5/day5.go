@@ -1,7 +1,9 @@
 package day5
 
 import (
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/jonasah/advent-of-code-2023/lib/common"
 	"github.com/jonasah/advent-of-code-2023/lib/math"
@@ -83,33 +85,61 @@ func Part1(input string) int {
 func Part2(input string) int {
 	almanac := parseInput(input, 2)
 
-	location := 0
+	numWorkers := runtime.NumCPU() - 1
+	resChan := make(chan int, numWorkers)
 
-	for {
-		category := endCategory
-		number := location
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
 
-		for category != startCategory {
-			m := almanac.maps[category]
-
-			for _, e := range m.entries {
-				if e.containsSource(number) {
-					number = e.mapToDestination(number)
+	for i := 0; i < numWorkers; i++ {
+		go func(location int) {
+			for {
+				if tryLocation(almanac, location) {
+					resChan <- location
 					break
 				}
+
+				location += numWorkers
 			}
 
-			category = m.to
-		}
-
-		for _, r := range almanac.seedRanges {
-			if r.contains(number) {
-				return location
-			}
-		}
-
-		location++
+			wg.Done()
+		}(i)
 	}
+
+	wg.Wait()
+
+	candidates := make([]int, 0, len(resChan))
+	for len(resChan) > 0 {
+		candidates = append(candidates, <-resChan)
+	}
+
+	return math.MinElement(candidates)
+}
+
+func tryLocation(almanac Almanac, location int) bool {
+	category := endCategory
+	number := location
+
+	for category != startCategory {
+		m := almanac.maps[category]
+
+		for _, e := range m.entries {
+			if e.containsSource(number) {
+				number = e.mapToDestination(number)
+				break
+			}
+		}
+
+		category = m.to
+	}
+
+	for _, r := range almanac.seedRanges {
+		if r.contains(number) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func parseInput(input string, part int) Almanac {
