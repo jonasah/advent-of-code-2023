@@ -1,6 +1,7 @@
 package day6
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
@@ -32,13 +33,7 @@ func Part2(input string) int {
 }
 
 func getNumberOfWaysToWin(time, distance int) int {
-	for holdTime := 0; holdTime <= time; holdTime++ {
-		speed := holdTime
-		d := (time - holdTime) * speed
-		if d > distance {
-			return (time - holdTime) - holdTime + 1
-		}
-	}
-
-	return 0
+	threshold := (float64(time) - math.Sqrt(float64(time*time-4*distance))) / 2
+	holdTime := int(math.Ceil(threshold + 1e-9))
+	return (time - holdTime) - holdTime + 1
 }
