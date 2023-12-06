@@ -16,16 +16,7 @@ func Part1(input string) int {
 
 	res := 1
 	for i, t := range times {
-		count := 0
-		for holdTime := 0; holdTime <= t; holdTime++ {
-			speed := holdTime
-			d := (t - holdTime) * speed
-			if d > distances[i] {
-				count++
-			}
-		}
-
-		res *= count
+		res *= getNumberOfWaysToWin(t, distances[i])
 	}
 
 	return res
@@ -37,25 +28,17 @@ func Part2(input string) int {
 	time, _ := strconv.Atoi(strings.ReplaceAll(lines[0][5:], " ", ""))
 	distance, _ := strconv.Atoi(strings.ReplaceAll(lines[1][9:], " ", ""))
 
-	minHoldTime := 0
+	return getNumberOfWaysToWin(time, distance)
+}
+
+func getNumberOfWaysToWin(time, distance int) int {
 	for holdTime := 0; holdTime <= time; holdTime++ {
 		speed := holdTime
 		d := (time - holdTime) * speed
 		if d > distance {
-			minHoldTime = holdTime
-			break
+			return (time - holdTime) - holdTime + 1
 		}
 	}
 
-	maxHoldTime := 0
-	for holdTime := time; holdTime >= 0; holdTime-- {
-		speed := holdTime
-		d := (time - holdTime) * speed
-		if d > distance {
-			maxHoldTime = holdTime
-			break
-		}
-	}
-
-	return maxHoldTime - minHoldTime + 1
+	return 0
 }
