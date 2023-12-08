@@ -40,3 +40,22 @@ func Abs(x int) int {
 func Pow(x, y int) int {
 	return int(math.Pow(float64(x), float64(y)))
 }
+
+func Gcd(x, y int) int {
+	for y != 0 {
+		t := y
+		y = x % y
+		x = t
+	}
+	return x
+}
+
+func Lcm(x, b int, rest ...int) int {
+	result := x * b / Gcd(x, b)
+
+	for _, i := range rest {
+		result = Lcm(result, i)
+	}
+
+	return result
+}
