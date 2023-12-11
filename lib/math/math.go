@@ -59,3 +59,14 @@ func Lcm(x, b int, rest ...int) int {
 
 	return result
 }
+
+func Sign(val int) int {
+	if val == 0 {
+		return 0
+	}
+	if val < 0 {
+		return -1
+	}
+
+	return 1
+}
